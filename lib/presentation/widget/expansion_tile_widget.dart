@@ -12,7 +12,9 @@ class ExpansionTileWidget extends StatelessWidget {
     return BlocBuilder<TreenodeBloc, TreenodeState>(
       builder: (context, state) {
         if (state is TreenodeInitial || state is TreenodeUpdated) {
-          final nodes = state is TreenodeInitial ? state.nodes : (state as TreenodeUpdated).nodes;
+          final nodes = state is TreenodeInitial
+              ? state.nodes
+              : (state as TreenodeUpdated).nodes;
 
           return ListView(
             children: nodes.map((node) => TreeNodeWidget(node: node)).toList(),
@@ -38,37 +40,44 @@ class TreeNodeWidget extends StatelessWidget {
             if (node.children.isNotEmpty)
               IconButton(
                 icon: Icon(node.isExpanded ? Icons.remove : Icons.add),
-                onPressed: () => context.read<TreenodeBloc>().add(ToggleExpansion(node.id)),
+                onPressed: () =>
+                    context.read<TreenodeBloc>().add(ToggleExpansion(node.id)),
               ),
             Expanded(
               child: TextField(
                 controller: TextEditingController(text: node.title),
-                onSubmitted: (value) => context.read<TreenodeBloc>().add(UpdateTitle(node.id, value)),
+                onSubmitted: (value) => context
+                    .read<TreenodeBloc>()
+                    .add(UpdateTitle(node.id, value)),
               ),
             ),
             Checkbox(
               value: node.isChecked,
-              onChanged: (_) => context.read<TreenodeBloc>().add(ToggleCheckbox(node.id)),
+              onChanged: (_) =>
+                  context.read<TreenodeBloc>().add(ToggleCheckbox(node.id)),
             ),
             IconButton(
               icon: const Icon(Icons.add),
-              onPressed: () => context.read<TreenodeBloc>().add(AddChild(node.id)),
+              onPressed: () =>
+                  context.read<TreenodeBloc>().add(AddChild(node.id)),
             ),
             IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: () => context.read<TreenodeBloc>().add(RemoveNode(node.id)),
-              ),
-            ],
+              onPressed: () =>
+                  context.read<TreenodeBloc>().add(RemoveNode(node.id)),
+            ),
+          ],
         ),
         if (node.isExpanded)
           Padding(
             padding: const EdgeInsets.only(left: 20.0),
             child: Column(
-              children: node.children.map((child) => TreeNodeWidget(node: child)).toList(),
+              children: node.children
+                  .map((child) => TreeNodeWidget(node: child))
+                  .toList(),
             ),
           ),
       ],
     );
   }
 }
-
