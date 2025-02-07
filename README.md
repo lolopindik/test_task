@@ -1,3 +1,3 @@
 # test_task
 
-![image](https://github.com/user-attachments/assets/fc3e1a83-94d0-4b62-8c80-931e6b8ffd41)
+![IMG_1352](https://github.com/user-attachments/assets/aaf800e8-ad05-4d53-813b-72fc0438a5f0)
