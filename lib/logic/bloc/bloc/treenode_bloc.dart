@@ -35,15 +35,18 @@ class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
     final updatedNodes = _updateNode(state.nodes, event.nodeId, (node) {
       node.isChecked = !node.isChecked;
 
-      if (node.children.isNotEmpty) {
-        for (var child in node.children) {
-          child.isChecked = node.isChecked;
-        }
-      }
+      _updateChildNodes(node, node.isChecked);
     });
 
     final finalNodes = _updateParentCheckbox(updatedNodes);
     emit(TreenodeUpdated(nodes: finalNodes));
+  }
+
+  void _updateChildNodes(TreeNode node, bool isChecked) {
+    for (var child in node.children) {
+      child.isChecked = isChecked;
+      _updateChildNodes(child, isChecked);
+    }
   }
 
   void _addChild(AddChild event, Emitter<TreenodeState> emit) {
@@ -88,13 +91,8 @@ class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
   List<TreeNode> _updateParentCheckbox(List<TreeNode> nodes) {
     return nodes.map((node) {
       if (node.children.isNotEmpty) {
-        final updatedChildren = _updateParentCheckbox(node.children);
-        final allChecked = updatedChildren.every((child) => child.isChecked);
+        bool allChecked = node.children.every((child) => child.isChecked);
         node.isChecked = allChecked;
-        return node.copyWith(
-          isChecked: allChecked,
-          children: updatedChildren,
-        );
       }
       return node;
     }).toList();
