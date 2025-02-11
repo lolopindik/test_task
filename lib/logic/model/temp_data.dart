@@ -1,5 +1,5 @@
 class TreeNode {
-  String id;
+  int id;
   String title;
   bool isExpanded;
   bool isChecked;
@@ -14,7 +14,7 @@ class TreeNode {
   });
 
   TreeNode copyWith({
-    String? id,
+    int? id,
     String? title,
     bool? isExpanded,
     bool? isChecked,
