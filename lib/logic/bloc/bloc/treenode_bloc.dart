@@ -43,11 +43,22 @@ class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
   List<TreeNode> _updateAllParentCheckboxes(List<TreeNode> nodes, int changedNodeId) {
     bool updateParent(TreeNode node) {
       if (node.children.isNotEmpty) {
+        bool allChecked = node.children.every((child) => child.isChecked);
         bool anyChecked = node.children.any((child) => child.isChecked);
-        node.isChecked = anyChecked;
+
+        if (anyChecked) {
+          node.isChecked = true;
+        } 
+        else if (!allChecked) {
+          node.isChecked = false;
+        } 
+        else {
+          node.isChecked = false; 
+        }
       }
       return node.isChecked;
     }
+
 
     List<TreeNode> traverseAndUpdate(List<TreeNode> nodes) {
       return nodes.map((node) {
