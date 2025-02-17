@@ -34,44 +34,34 @@ class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
   void _toggleCheckbox(ToggleCheckbox event, Emitter<TreenodeState> emit) {
     final updatedNodes = _updateNode(state.nodes, event.nodeId, (node) {
       node.isChecked = !node.isChecked;
-      _updateChildNodes(node, node.isChecked);
-      _updateParentNodes(state.nodes, node.id, node.isChecked);
     });
 
-    final finalNodes = _updateParentCheckbox(updatedNodes);
+    final finalNodes = _updateAllParentCheckboxes(updatedNodes, event.nodeId);
     emit(TreenodeUpdated(nodes: finalNodes));
   }
 
-  void _updateChildNodes(TreeNode node, bool isChecked) {
-    for (var child in node.children) {
-      child.isChecked = isChecked;
-      _updateChildNodes(child, isChecked);
-    }
-  }
-
-  void _updateParentNodes(List<TreeNode> nodes, int currentId, bool isChecked) {
-    for (var node in nodes) {
-      if (node.id < currentId) {
-        node.isChecked = isChecked;
-        _updateParentNodes([node], node.id, isChecked);
-      }
-      _updateParentNodes(node.children, currentId, isChecked);
-    }
-  }
-
-  List<TreeNode> _updateParentCheckbox(List<TreeNode> nodes) {
-    return nodes.map((node) {
+  List<TreeNode> _updateAllParentCheckboxes(List<TreeNode> nodes, int changedNodeId) {
+    bool updateParent(TreeNode node) {
       if (node.children.isNotEmpty) {
-        bool allChecked = node.children.every((child) => child.isChecked);
         bool anyChecked = node.children.any((child) => child.isChecked);
-
-        node.isChecked = allChecked || anyChecked;
+        node.isChecked = anyChecked;
       }
+      return node.isChecked;
+    }
 
-      return node.copyWith(
-        children: _updateParentCheckbox(node.children),
-      );
-    }).toList();
+    List<TreeNode> traverseAndUpdate(List<TreeNode> nodes) {
+      return nodes.map((node) {
+        node = node.copyWith(
+          children: traverseAndUpdate(node.children),
+        );
+        if (node.children.any((child) => child.id == changedNodeId) || node.children.any((child) => child.isChecked)) {
+          updateParent(node);
+        }
+        return node;
+      }).toList();
+    }
+
+    return traverseAndUpdate(nodes);
   }
 
   void _addChild(AddChild event, Emitter<TreenodeState> emit) {
