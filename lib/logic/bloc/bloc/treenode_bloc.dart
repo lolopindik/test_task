@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:test_task/logic/bloc/bloc/treenode_state.dart';
 import 'package:test_task/logic/model/temp_data.dart';
-
 part 'treenode_event.dart';
 
 class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
@@ -35,7 +34,6 @@ class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
     final updatedNodes = _updateNode(state.nodes, event.nodeId, (node) {
       node.isChecked = !node.isChecked;
     });
-
     final finalNodes = _updateAllParentCheckboxes(updatedNodes, event.nodeId);
     emit(TreenodeUpdated(nodes: finalNodes));
   }
@@ -46,28 +44,35 @@ class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
         bool allChecked = node.children.every((child) => child.isChecked);
         bool anyChecked = node.children.any((child) => child.isChecked);
 
-        if (anyChecked) {
+        //* Выделяет родителя
+        if (allChecked) {
           node.isChecked = true;
         } 
-        else if (!allChecked) {
-          node.isChecked = false;
+        //* Дочерний снят, то родительский тоже при false
+        else if (!anyChecked) {
+          node.isChecked = true;
         } 
+        //* При true выделят только родителя
         else {
-          node.isChecked = false; 
+          node.isChecked = true;
         }
       }
       return node.isChecked;
     }
 
-
     List<TreeNode> traverseAndUpdate(List<TreeNode> nodes) {
       return nodes.map((node) {
+        // Рекурсивно обновляем детей
         node = node.copyWith(
           children: traverseAndUpdate(node.children),
         );
+
+        // Если текущий узел содержит измененный узел или любой из его детей отмечен,
+        // обновляем состояние родительского чекбокса
         if (node.children.any((child) => child.id == changedNodeId) || node.children.any((child) => child.isChecked)) {
           updateParent(node);
         }
+
         return node;
       }).toList();
     }
