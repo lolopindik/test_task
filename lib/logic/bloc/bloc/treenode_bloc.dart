@@ -39,45 +39,34 @@ class TreenodeBloc extends Bloc<TreenodeEvent, TreenodeState> {
   }
 
   List<TreeNode> _updateAllParentCheckboxes(List<TreeNode> nodes, int changedNodeId) {
-    bool updateParent(TreeNode node) {
-      if (node.children.isNotEmpty) {
-        bool allChecked = node.children.every((child) => child.isChecked);
-        bool anyChecked = node.children.any((child) => child.isChecked);
-
-        //* Выделяет родителя
-        if (allChecked) {
-          node.isChecked = true;
-        } 
-        //* Дочерний снят, то родительский тоже при false
-        else if (!anyChecked) {
-          node.isChecked = true;
-        } 
-        //* При true выделят только родителя
-        else {
-          node.isChecked = true;
-        }
+    Map<int, TreeNode> nodeMap = {};
+    
+    void mapNodes(List<TreeNode> nodes) {
+      for (var node in nodes) {
+        nodeMap[node.id] = node;
+        mapNodes(node.children);
       }
-      return node.isChecked;
     }
 
-    List<TreeNode> traverseAndUpdate(List<TreeNode> nodes) {
-      return nodes.map((node) {
-        // Рекурсивно обновляем детей
-        node = node.copyWith(
-          children: traverseAndUpdate(node.children),
-        );
+    mapNodes(nodes);
 
-        // Если текущий узел содержит измененный узел или любой из его детей отмечен,
-        // обновляем состояние родительского чекбокса
-        if (node.children.any((child) => child.id == changedNodeId) || node.children.any((child) => child.isChecked)) {
-          updateParent(node);
-        }
+    void updateParent(int nodeId) {
+      var parent = nodeMap.values.firstWhere(
+        (node) => node.children.any((child) => child.id == nodeId),
+        orElse: () => TreeNode(id: -1, title: '', children: []),
+      );
 
-        return node;
-      }).toList();
+      if (parent.id != -1) {
+        bool allChecked = parent.children.every((child) => child.isChecked);
+        bool anyChecked = parent.children.any((child) => child.isChecked);
+
+        parent.isChecked = allChecked ? true : anyChecked ? true : false;
+        updateParent(parent.id);
+      }
     }
 
-    return traverseAndUpdate(nodes);
+    updateParent(changedNodeId);
+    return nodes;
   }
 
   void _addChild(AddChild event, Emitter<TreenodeState> emit) {
